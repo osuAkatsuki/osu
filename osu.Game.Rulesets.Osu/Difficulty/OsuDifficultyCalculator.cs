@@ -51,7 +51,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             else if (mods.Any(h => h is OsuModAutopilot))
             {
                 aimRating = 0.0;
-                flashlightRating *= 0.6;
+                flashlightRating *= 0.4;
             }
 
             double sliderFactor = aimRating > 0 ? aimRatingNoSliders / aimRating : 1;
