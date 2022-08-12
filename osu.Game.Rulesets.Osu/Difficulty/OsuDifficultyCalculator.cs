@@ -56,6 +56,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             double sliderFactor = aimRating > 0 ? aimRatingNoSliders / aimRating : 1;
 
+            double aimDifficultyStrainCount = ((OsuStrainSkill)skills[0]).CountDifficultStrains();
+            double speedDifficultyStrainCount = ((OsuStrainSkill)skills[2]).CountDifficultStrains();
+
             double baseAimPerformance = Math.Pow(5 * Math.Max(1, aimRating / 0.0675) - 4, 3) / 100000;
             double baseSpeedPerformance = Math.Pow(5 * Math.Max(1, speedRating / 0.0675) - 4, 3) / 100000;
             double baseFlashlightPerformance = 0.0;
@@ -89,6 +92,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty
                 SpeedNoteCount = speedNotes,
                 FlashlightDifficulty = flashlightRating,
                 SliderFactor = sliderFactor,
+                AimDifficultStrainCount = aimDifficultyStrainCount,
+                SpeedDifficultStrainCount = speedDifficultyStrainCount,
                 ApproachRate = preempt > 1200 ? (1800 - preempt) / 120 : (1200 - preempt) / 150 + 5,
                 OverallDifficulty = (80 - hitWindowGreat) / 6,
                 DrainRate = drainRate,
