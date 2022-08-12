@@ -67,21 +67,25 @@ namespace osu.Game.Rulesets.Osu.Difficulty
         /// <summary>
         /// The beatmap's drain rate. This doesn't scale with rate-adjusting mods.
         /// </summary>
+        [JsonProperty("drain_rate")]
         public double DrainRate { get; set; }
 
         /// <summary>
         /// The number of hitcircles in the beatmap.
         /// </summary>
+        [JsonProperty("hit_circle_count")]
         public int HitCircleCount { get; set; }
 
         /// <summary>
         /// The number of sliders in the beatmap.
         /// </summary>
+        [JsonProperty("slider_count")]
         public int SliderCount { get; set; }
 
         /// <summary>
         /// The number of spinners in the beatmap.
         /// </summary>
+        [JsonProperty("spinner_count")]
         public int SpinnerCount { get; set; }
 
         public override IEnumerable<(int attributeId, object value)> ToDatabaseAttributes()
@@ -101,6 +105,11 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             yield return (ATTRIB_ID_SLIDER_FACTOR, SliderFactor);
             yield return (ATTRIB_ID_SPEED_NOTE_COUNT, SpeedNoteCount);
+
+            yield return (ATTRIB_ID_DRAIN_RATE, DrainRate);
+            yield return (ATTRIB_ID_HIT_CIRCLE_COUNT, HitCircleCount);
+            yield return (ATTRIB_ID_SLIDER_COUNT, SliderCount);
+            yield return (ATTRIB_ID_SPINNER_COUNT, SpinnerCount);
         }
 
         public override void FromDatabaseAttributes(IReadOnlyDictionary<int, double> values, IBeatmapOnlineInfo onlineInfo)
@@ -117,10 +126,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             SliderFactor = values[ATTRIB_ID_SLIDER_FACTOR];
             SpeedNoteCount = values[ATTRIB_ID_SPEED_NOTE_COUNT];
 
-            DrainRate = onlineInfo.DrainRate;
-            HitCircleCount = onlineInfo.CircleCount;
-            SliderCount = onlineInfo.SliderCount;
-            SpinnerCount = onlineInfo.SpinnerCount;
+            DrainRate = values[ATTRIB_ID_DRAIN_RATE];
+            HitCircleCount = (int)values[ATTRIB_ID_HIT_CIRCLE_COUNT];
+            SliderCount = (int)values[ATTRIB_ID_SLIDER_COUNT];
+            SpinnerCount = (int)values[ATTRIB_ID_SPINNER_COUNT];
         }
 
         #region Newtonsoft.Json implicit ShouldSerialize() methods
