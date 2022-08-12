@@ -51,6 +51,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             if (score.Mods.Any(m => m is OsuModSpunOut) && totalHits > 0)
                 multiplier *= 1.0 - Math.Pow((double)osuAttributes.SpinnerCount / totalHits, 0.85);
 
+            if (score.Mods.Any(m => m is OsuModRelax))
+                multiplier *= 1.5;
+
             double aimValue = computeAimValue(score, osuAttributes);
             double speedValue = computeSpeedValue(score, osuAttributes);
             double accuracyValue = computeAccuracyValue(score, osuAttributes);
@@ -99,6 +102,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty
                 approachRateFactor = 0.3 * (attributes.ApproachRate - 10.33);
             else if (attributes.ApproachRate < 8.0)
                 approachRateFactor = 0.05 * (8.0 - attributes.ApproachRate);
+
+            if (score.Mods.Any(m => m is OsuModRelax))
+                approachRateFactor *= 0.7;
 
             aimValue *= 1.0 + approachRateFactor * lengthBonus; // Buff for longer maps with high AR.
 
