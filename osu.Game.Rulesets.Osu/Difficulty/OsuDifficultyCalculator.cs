@@ -25,7 +25,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
         private const double difficulty_multiplier = 0.0675;
         private double hitWindowGreat;
 
-        public override int Version => 20220701;
+        public override int Version => 20220812;
 
         public OsuDifficultyCalculator(IRulesetInfo ruleset, IWorkingBeatmap beatmap)
             : base(ruleset, beatmap)
@@ -43,14 +43,18 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             double speedNotes = ((Speed)skills[2]).RelevantNoteCount();
             double flashlightRating = Math.Sqrt(skills[3].DifficultyValue()) * difficulty_multiplier;
 
-            double sliderFactor = aimRating > 0 ? aimRatingNoSliders / aimRating : 1;
-
             if (mods.Any(h => h is OsuModRelax))
             {
-                aimRating *= 0.9;
                 speedRating = 0.0;
                 flashlightRating *= 0.7;
             }
+            else if (mods.Any(h => h is OsuModAutopilot))
+            {
+                aimRating = 0.0;
+                flashlightRating *= 0.6;
+            }
+
+            double sliderFactor = aimRating > 0 ? aimRatingNoSliders / aimRating : 1;
 
             double baseAimPerformance = Math.Pow(5 * Math.Max(1, aimRating / 0.0675) - 4, 3) / 100000;
             double baseSpeedPerformance = Math.Pow(5 * Math.Max(1, speedRating / 0.0675) - 4, 3) / 100000;
@@ -133,7 +137,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             new OsuModEasy(),
             new OsuModHardRock(),
             new OsuModFlashlight(),
-            new MultiMod(new OsuModFlashlight(), new OsuModHidden())
+            new MultiMod(new OsuModFlashlight(), new OsuModHidden()),
+            new OsuModRelax(),
+            new OsuModAutopilot()
         };
     }
 }
