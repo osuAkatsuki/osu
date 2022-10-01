@@ -69,7 +69,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
                     1.0 / 1.1
                 ) * multiplier;
 
-            totalValue = nerfRelaxTotalValue(totalValue, score);
+            double finalTotalValue = nerfRelaxTotalValue(totalValue, score);
 
             return new OsuPerformanceAttributes
             {
@@ -78,7 +78,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
                 Accuracy = accuracyValue,
                 Flashlight = flashlightValue,
                 EffectiveMissCount = effectiveMissCount,
-                Total = totalValue
+                Total = finalTotalValue
             };
         }
 
