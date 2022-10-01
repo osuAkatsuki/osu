@@ -53,13 +53,6 @@ namespace osu.Game.Rulesets.Osu.Difficulty
                 flashlightRating = Math.Pow(flashlightRating, 0.8);
             }
 
-            if (mods.Any(h => h is OsuModRelax))
-            {
-                aimRating *= 0.9;
-                speedRating = 0.0;
-                flashlightRating *= 0.7;
-            }
-
             double baseAimPerformance = Math.Pow(5 * Math.Max(1, aimRating / 0.0675) - 4, 3) / 100000;
             double baseSpeedPerformance = Math.Pow(5 * Math.Max(1, speedRating / 0.0675) - 4, 3) / 100000;
             double baseFlashlightPerformance = 0.0;
