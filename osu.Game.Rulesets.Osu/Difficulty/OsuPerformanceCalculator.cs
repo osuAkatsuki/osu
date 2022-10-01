@@ -104,6 +104,18 @@ namespace osu.Game.Rulesets.Osu.Difficulty
                 aimValue *= 1.0 + hiddenFactor * (hiddenApproachRateFactor - attributes.ApproachRate);
             }
 
+            // NOTE: this should be removed in the future, praying we get good ideas for this one day as this is super flawed
+            // Buff aim pp in case of low EZ mod
+            if (score.Mods.Any(m => m is OsuModEasy))
+            {
+                double buffFactor = 1.08;
+
+                if (attributes.ApproachRate <= 8.0)
+                    buffFactor += (7.0 - attributes.ApproachRate) / 100;
+
+                aimValue *= buffFactor;
+            }
+
             // We assume 15% of sliders in a map are difficult since there's no way to tell from the performance calculator.
             double estimateDifficultSliders = attributes.SliderCount * 0.15;
 
@@ -116,7 +128,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             aimValue *= accuracy;
             // It is important to consider accuracy difficulty when scaling with accuracy.
-            aimValue *= 0.98 + Math.Pow(attributes.OverallDifficulty, 2) / 2500;
+            double accuracyFactor = score.Mods.Any(m => m is OsuModRelax) ? 0.95 : 0.98;
+            aimValue *= accuracyFactor + Math.Pow(attributes.OverallDifficulty, 2) / 2500;
 
             return aimValue;
         }
