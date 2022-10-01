@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Game.Rulesets.Difficulty;
+using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Osu.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
@@ -55,13 +56,20 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             double speedValue = computeSpeedValue(score, osuAttributes);
             double accuracyValue = computeAccuracyValue(score, osuAttributes);
             double flashlightValue = computeFlashlightValue(score, osuAttributes);
+
+            (double finalAimValue, double finalSpeedValue, double finalAccuracyValue, double finalFlashlightValue) =
+                nerfRelaxFinalValues(aimValue, speedValue, accuracyValue, flashlightValue, score);
+
             double totalValue =
                 Math.Pow(
-                    Math.Pow(aimValue, 1.1) +
-                    Math.Pow(speedValue, 1.1) +
-                    Math.Pow(accuracyValue, 1.1) +
-                    Math.Pow(flashlightValue, 1.1), 1.0 / 1.1
+                    finalAimValue +
+                    finalSpeedValue +
+                    finalAccuracyValue +
+                    finalFlashlightValue,
+                    1.0 / 1.1
                 ) * multiplier;
+
+            totalValue = nerfRelaxTotalValue(totalValue, score);
 
             return new OsuPerformanceAttributes
             {
@@ -72,6 +80,93 @@ namespace osu.Game.Rulesets.Osu.Difficulty
                 EffectiveMissCount = effectiveMissCount,
                 Total = totalValue
             };
+        }
+
+        private (double, double, double, double) nerfRelaxFinalValues(double aimValue, double speedValue, double accuracyValue, double flashlightValue, ScoreInfo score)
+        {
+            double accuracyFactor = 1.0;
+            if (score.Mods.Any(m => m is OsuModRelax))
+            {
+                double flowFactor = aimValue / speedValue;
+                if (flowFactor < 1.0)
+                {
+                    accuracyFactor = Math.Max(0.85, accuracy < 1.0 ? 0.95 - (1.0 - accuracy) : 0.95);
+                    aimValue *= accuracyFactor;
+                }
+            }
+
+            double nonDtBonus = 1.0;
+            if (!score.Mods.Any(m => m is OsuModDoubleTime) && !score.Mods.Any(m => m is OsuModNightcore) &&
+                !score.Mods.Any(m => m is OsuModHalfTime) && score.Mods.Any(m => m is OsuModRelax) &&
+                Math.Abs(accuracyFactor - 1.0) < 0.01)
+            {
+                nonDtBonus += 0.01;
+            }
+
+            double finalAimValue = score.Mods.Any(m => m is OsuModRelax)
+                ? Math.Pow(aimValue, 1.18 * nonDtBonus)
+                : Math.Pow(aimValue, 1.1);
+
+            double finalSpeedValue = score.Mods.Any(m => m is OsuModRelax)
+                ? Math.Pow(speedValue, 0.83 * accuracyFactor)
+                : score.Mods.Any(m => m is OsuModAutopilot) ? Math.Pow(speedValue, 1.12) : Math.Pow(speedValue, 1.1);
+
+            double finalAccuracyValue = score.Mods.Any(m => m is OsuModRelax)
+                ? Math.Pow(accuracyValue, 1.15 * accuracyFactor)
+                : Math.Pow(accuracyValue, 1.1);
+
+            double finalFlashlightValue = score.Mods.Any(m => m is OsuModRelax)
+                ? Math.Pow(flashlightValue, 0.98)
+                : score.Mods.Any(m => m is OsuModAutopilot)
+                    ? Math.Pow(flashlightValue, 0.9)
+                    : Math.Pow(flashlightValue, 1.1);
+
+            return (finalAimValue, finalSpeedValue, finalAccuracyValue, finalFlashlightValue);
+        }
+
+        private double nerfRelaxTotalValue(double totalValue, ScoreInfo score)
+        {
+            if ((score.Mods.Any(m => m is OsuModDoubleTime) | score.Mods.Any(m => m is OsuModNightcore)) &&
+                score.Mods.Any(m => m is OsuModHardRock))
+                totalValue *= 1.025;
+
+            // ParkourWizard user ID
+            if (score.BeatmapInfo.Metadata.Author.OnlineID == 6938249)
+                totalValue *= 0.9;
+
+            switch (score.BeatmapInfo.OnlineID)
+            {
+                // Louder than steel [ok this is epic]
+                case 1808605:
+                    totalValue *= 0.85;
+                    break;
+
+                // over the top [Above the stars]
+                case 1822147:
+                    totalValue *= 0.70;
+                    break;
+
+                // Just press F [Parkour's ok this is epic]
+                case 1844776:
+                    totalValue *= 0.64;
+                    break;
+
+                // Hardware Store [skyapple mode]
+                // HONESTY [RIGHTEOUSNESS OF MORALITY]
+                case 1777768:
+                    totalValue *= 0.90;
+                    break;
+
+                // Akatsuki compilation [ok this is akatsuki]
+                case 1962833:
+                    totalValue *= 0.885;
+                    if (score.Mods.Any(m => m is OsuModDoubleTime) | score.Mods.Any(m => m is OsuModNightcore))
+                        totalValue *= 0.83;
+
+                    break;
+            }
+
+            return totalValue;
         }
 
         private double computeAimValue(ScoreInfo score, OsuDifficultyAttributes attributes)
